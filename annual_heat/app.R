@@ -8,26 +8,49 @@
 #
 
 library(shiny)
+library(tidyverse)
+library(readr)
+library(plotly)
+
+
+
+ambulatory_joined <-
+    readr::read_rds("C:/Users/slewa/Projects/shiny_heat_stress/data/joined_counts_scaled.rds") %>% 
+    mutate(rate = (count / population) * 1000)
+    
+
+glmer_ambulatory <-
+    readr::read_rds("C:/Users/slewa/Projects/shiny_heat_stress/data/random_slope_bct_nest.rds")
+
+index_choices <- glmer_ambulatory$index
+
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
+    titlePanel("Annual Heat Stress Illness Models - US Army"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
+            helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
+            
+            selectInput("type",
+                        label = "Select encounter type",
+                        choices = list("Out-patient", 
+                                       "In-patient"),
+                        selected = "Out-patient"),
+            
+            selectInput("index",
+                        label = "Select index of heat", 
+                        index_choices),
         ),
+            
 
-        # Show a plot of the generated distribution
+        # Show a scatterplot of exposure-response
         mainPanel(
-           plotOutput("distPlot")
+           plotlyOutput("scatter_plot1")
         )
     )
 )
@@ -35,15 +58,36 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
 
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
+    output$scatter_plot1 <- renderPlotly({
+        # generate plot based on input$index from ui.R
+    
+        gg_ambulatory_scatter <-
+            ambulatory_joined  %>% 
+                filter(index %in% input$index) %>% 
+                ggplot(aes(x = value, y = rate, color = installation, shape = installation, 
+                           text = paste("installation:", installation, "<br>", 
+                                        "year:", year, "<br>", 
+                                        "index value:", round(value, digits = 2), "<br>", 
+                                        "HSI rate:", round(rate, digits = 2)), 
+                            group = installation)) +
+                geom_point() +
+            
+                geom_smooth(method = lm, se = FALSE, size = 0.8) +
+                labs(
+                    title = "Army Heat Stress Illness Ambulatory Rates",
+                            x = input$index,
+                            y = "HSI rate (per 1,000 persons per year)"
+                        ) +
+                scale_shape_manual(values = 0:11) +
+                        theme_bw()
+            
+        ggplotly(gg_ambulatory_scatter, tooltip = c("text")) %>% 
+            print
+    
+    
     })
 }
 
+ 
 # Run the application 
 shinyApp(ui = ui, server = server)
