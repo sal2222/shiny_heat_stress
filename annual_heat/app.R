@@ -13,7 +13,6 @@ library(readr)
 library(plotly)
 library(rsconnect)
 
-getwd()
 
 ambulatory_joined <-
     readr::read_rds("../annual_heat/data/joined_counts_scaled.rds") %>% 
@@ -45,13 +44,15 @@ ui <- fluidPage(
             
             selectInput("index",
                         label = "Select index of heat", 
-                        index_choices),
+                        index_choices)
         ),
             
 
         # Show a scatterplot of exposure-response
         mainPanel(
-           plotlyOutput("scatter_plot1")
+           plotlyOutput("scatter_plot1"),
+           br(),
+           plotlyOutput("scatter_plot2")
         )
     )
 )
@@ -75,7 +76,7 @@ server <- function(input, output) {
             
                 geom_smooth(method = lm, se = FALSE, size = 0.8) +
                 labs(
-                    title = "Army Heat Stress Illness Ambulatory Rates",
+                    title = "Army Heat Stress Illness Ambulatory Rates (1997-2018)",
                             x = input$index,
                             y = "HSI rate (per 1,000 persons per year)"
                         ) +
@@ -84,31 +85,35 @@ server <- function(input, output) {
             
         ggplotly(gg_ambulatory_scatter, tooltip = c("text")) %>% 
             print
-    
+        }
+    )
         
         
-        gg_ambulatory_scatter_counts <-
-            ambulatory_joined  %>% 
-            filter(index %in% input$index) %>% 
-            ggplot(aes(x = value, y = count, color = installation, shape = installation, 
-                       text = paste("installation:", installation, "<br>", 
-                                    "year:", year, "<br>", 
-                                    "index value:", round(value, digits = 2), "<br>", 
-                                    "HSI count:", round(rate, digits = 2)), 
-                       group = installation)) +
-            geom_point() +
+        output$scatter_plot2 <- renderPlotly({
+            # generate plot based on input$index from ui.R
             
-            geom_smooth(method = lm, se = FALSE, size = 0.8) +
-            labs(
-                title = "Army Heat Stress Illness Ambulatory Rates",
-                x = input$index,
-                y = "HSI rate (per 1,000 persons per year)"
-            ) +
-            scale_shape_manual(values = 0:11) +
-            theme_bw()
-        
-        ggplotly(gg_ambulatory_scatter_counts, tooltip = c("text")) %>% 
-            print
+            gg_ambulatory_scatter_counts <-
+                ambulatory_joined  %>% 
+                filter(index %in% input$index) %>% 
+                ggplot(aes(x = value, y = count, color = installation, shape = installation, 
+                           text = paste("installation:", installation, "<br>", 
+                                        "year:", year, "<br>", 
+                                        "index value:", round(value, digits = 2), "<br>", 
+                                        "HSI count:", round(count, digits = 2)), 
+                           group = installation)) +
+                geom_point() +
+                
+                geom_smooth(method = lm, se = FALSE, size = 0.8) +
+                labs(
+                    title = "Army Heat Stress Illness Ambulatory Counts (1997-2018)",
+                    x = input$index,
+                    y = "HSI count"
+                ) +
+                scale_shape_manual(values = 0:11) +
+                theme_bw()
+            
+            ggplotly(gg_ambulatory_scatter_counts, tooltip = c("text")) %>% 
+                print
         
     
     })
