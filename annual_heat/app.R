@@ -11,16 +11,17 @@ library(shiny)
 library(tidyverse)
 library(readr)
 library(plotly)
+library(rsconnect)
 
-
+getwd()
 
 ambulatory_joined <-
-    readr::read_rds("C:/Users/slewa/Projects/shiny_heat_stress/data/joined_counts_scaled.rds") %>% 
+    readr::read_rds("../annual_heat/data/joined_counts_scaled.rds") %>% 
     mutate(rate = (count / population) * 1000)
     
 
 glmer_ambulatory <-
-    readr::read_rds("C:/Users/slewa/Projects/shiny_heat_stress/data/random_slope_bct_nest.rds")
+    readr::read_rds("../annual_heat/data/random_slope_bct_nest.rds")
 
 index_choices <- glmer_ambulatory$index
 
@@ -84,6 +85,31 @@ server <- function(input, output) {
         ggplotly(gg_ambulatory_scatter, tooltip = c("text")) %>% 
             print
     
+        
+        
+        gg_ambulatory_scatter_counts <-
+            ambulatory_joined  %>% 
+            filter(index %in% input$index) %>% 
+            ggplot(aes(x = value, y = count, color = installation, shape = installation, 
+                       text = paste("installation:", installation, "<br>", 
+                                    "year:", year, "<br>", 
+                                    "index value:", round(value, digits = 2), "<br>", 
+                                    "HSI count:", round(rate, digits = 2)), 
+                       group = installation)) +
+            geom_point() +
+            
+            geom_smooth(method = lm, se = FALSE, size = 0.8) +
+            labs(
+                title = "Army Heat Stress Illness Ambulatory Rates",
+                x = input$index,
+                y = "HSI rate (per 1,000 persons per year)"
+            ) +
+            scale_shape_manual(values = 0:11) +
+            theme_bw()
+        
+        ggplotly(gg_ambulatory_scatter_counts, tooltip = c("text")) %>% 
+            print
+        
     
     })
 }

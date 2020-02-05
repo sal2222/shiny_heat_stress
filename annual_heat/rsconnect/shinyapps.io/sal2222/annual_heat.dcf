@@ -1,0 +1,12 @@
+name: annual_heat
+title: annual_heat
+username:
+account: sal2222
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1765795
+bundleId: 2777409
+url: https://sal2222.shinyapps.io/annual_heat/
+when: 1580924364.83916
+asMultiple: FALSE
+asStatic: FALSE
