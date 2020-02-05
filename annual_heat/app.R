@@ -17,6 +17,10 @@ library(rsconnect)
 ambulatory_joined <-
     readr::read_rds("../annual_heat/data/joined_counts_scaled.rds") %>% 
     mutate(rate = (count / population) * 1000)
+
+joined_hsi_hosp <- readr::read_rds("../annual_heat/data/joined_hsi_hosp.rds")
+ 
+joined_hsi_rme <- readr::read_rds("../annual_heat/data/joined_hsi_rme.rds")    
     
 
 glmer_ambulatory <-
@@ -26,23 +30,16 @@ index_choices <- glmer_ambulatory$index
 
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
-
-    # Application title
-    titlePanel("Annual Heat Stress Illness Models - US Army"),
+ui <- navbarPage("Annual Heat Stress Illness Models - US Army",
+        tabPanel("Ambulatory",
+            fluidPage(
 
     # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
-            
-            selectInput("type",
-                        label = "Select encounter type",
-                        choices = list("Out-patient", 
-                                       "In-patient"),
-                        selected = "Out-patient"),
-            
-            selectInput("index",
+                sidebarLayout(
+                    sidebarPanel(
+                     helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
+  
+                        selectInput("index",
                         label = "Select index of heat", 
                         index_choices)
         ),
@@ -54,8 +51,57 @@ ui <- fluidPage(
            br(),
            plotlyOutput("scatter_plot2")
         )
+       )
     )
+),
+        tabPanel("Hospitalization",
+                 fluidPage(
+                     
+                     # Sidebar with a slider input for number of bins 
+                     sidebarLayout(
+                         sidebarPanel(
+                             helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
+                             
+                             selectInput("index",
+                                         label = "Select index of heat", 
+                                         index_choices)
+                         ),
+                         
+                         
+                         # Show a scatterplot of exposure-response
+                         mainPanel(
+                             plotlyOutput("scatter_plot_hosp1"),
+                             br(),
+                             plotlyOutput("scatter_plot_hosp2")
+                         )
+                     )
+                 )
+        ),
+        tabPanel("Reportable Events",
+                 fluidPage(
+                     
+                     # Sidebar with a slider input for number of bins 
+                     sidebarLayout(
+                         sidebarPanel(
+                             helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
+                             
+                             selectInput("index",
+                                         label = "Select index of heat", 
+                                         index_choices)
+                         ),
+                         
+                         
+                         # Show a scatterplot of exposure-response
+                         mainPanel(
+                             plotlyOutput("scatter_plot_rme1"),
+                             br(),
+                             plotlyOutput("scatter_plot_rme2")
+                         )
+                     )
+                 )
+        )
 )
+
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
@@ -117,7 +163,123 @@ server <- function(input, output) {
         
     
     })
+
+
+        output$scatter_plot_hosp1 <- renderPlotly({
+            # generate plot based on input$index from ui.R
+            
+            gg_hosp_scatter_rates <-
+                joined_hsi_hosp  %>% 
+                filter(index %in% input$index) %>% 
+                ggplot(aes(x = value, y = rate, color = installation, shape = installation, 
+                           text = paste("installation:", installation, "<br>", 
+                                        "year:", year, "<br>", 
+                                        "index value:", round(value, digits = 2), "<br>", 
+                                        "HSI rate:", round(rate, digits = 2)), 
+                           group = installation)) +
+                geom_point() +
+                
+                geom_smooth(method = lm, se = FALSE, size = 0.8) +
+                labs(
+                    title = "Army Heat Stress Illness Hospitalization Rates (1990-2018)",
+                    x = input$index,
+                    y = "HSI rate (per 1,000 persons per year)"
+                ) +
+                scale_shape_manual(values = 0:11) +
+                theme_bw()
+            
+            ggplotly(gg_hosp_scatter_rates, tooltip = c("text")) %>% 
+                print
+        }
+        )
+
+        output$scatter_plot_hosp2 <- renderPlotly({
+            # generate plot based on input$index from ui.R
+            
+            gg_hosp_scatter_counts <-
+                joined_hsi_hosp  %>% 
+                filter(index %in% input$index) %>% 
+                ggplot(aes(x = value, y = count, color = installation, shape = installation, 
+                           text = paste("installation:", installation, "<br>", 
+                                        "year:", year, "<br>", 
+                                        "index value:", round(value, digits = 2), "<br>", 
+                                        "HSI count:", round(count, digits = 2)), 
+                           group = installation)) +
+                geom_point() +
+                
+                geom_smooth(method = lm, se = FALSE, size = 0.8) +
+                labs(
+                    title = "Army Heat Stress Illness Hospitalization Counts (1990-2018)",
+                    x = input$index,
+                    y = "HSI count"
+                ) +
+                scale_shape_manual(values = 0:11) +
+                theme_bw()
+            
+            ggplotly(gg_hosp_scatter_counts, tooltip = c("text")) %>% 
+                print
+            
+            
+        })
+
+        output$scatter_plot_rme1 <- renderPlotly({
+            # generate plot based on input$index from ui.R
+            
+            gg_rme_scatter_rates <-
+                joined_hsi_hosp  %>% 
+                filter(index %in% input$index) %>% 
+                ggplot(aes(x = value, y = rate, color = installation, shape = installation, 
+                           text = paste("installation:", installation, "<br>", 
+                                        "year:", year, "<br>", 
+                                        "index value:", round(value, digits = 2), "<br>", 
+                                        "HSI rate:", round(rate, digits = 2)), 
+                           group = installation)) +
+                geom_point() +
+                
+                geom_smooth(method = lm, se = FALSE, size = 0.8) +
+                labs(
+                    title = "Army Heat Stress Illness Reportable Event Rates (1995-2018)",
+                    x = input$index,
+                    y = "HSI rate (per 1,000 persons per year)"
+                ) +
+                scale_shape_manual(values = 0:11) +
+                theme_bw()
+            
+            ggplotly(gg_rme_scatter_rates, tooltip = c("text")) %>% 
+                print
+        }
+        )
+        
+        output$scatter_plot_rme2 <- renderPlotly({
+            # generate plot based on input$index from ui.R
+            
+            gg_rme_scatter_counts <-
+                joined_hsi_hosp  %>% 
+                filter(index %in% input$index) %>% 
+                ggplot(aes(x = value, y = count, color = installation, shape = installation, 
+                           text = paste("installation:", installation, "<br>", 
+                                        "year:", year, "<br>", 
+                                        "index value:", round(value, digits = 2), "<br>", 
+                                        "HSI count:", round(count, digits = 2)), 
+                           group = installation)) +
+                geom_point() +
+                
+                geom_smooth(method = lm, se = FALSE, size = 0.8) +
+                labs(
+                    title = "Army Heat Stress Illness Reportable Event Counts (1995-2018)",
+                    x = input$index,
+                    y = "HSI count"
+                ) +
+                scale_shape_manual(values = 0:11) +
+                theme_bw()
+            
+            ggplotly(gg_rme_scatter_counts, tooltip = c("text")) %>% 
+                print
+            
+            
+        })
 }
+
 
  
 # Run the application 
