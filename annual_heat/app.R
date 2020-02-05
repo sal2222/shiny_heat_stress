@@ -39,7 +39,7 @@ ui <- navbarPage("Annual Heat Stress Illness Models - US Army",
                     sidebarPanel(
                      helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
   
-                        selectInput("index",
+                        selectInput("index1",
                         label = "Select index of heat", 
                         index_choices)
         ),
@@ -62,7 +62,7 @@ ui <- navbarPage("Annual Heat Stress Illness Models - US Army",
                          sidebarPanel(
                              helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
                              
-                             selectInput("index",
+                             selectInput("index2",
                                          label = "Select index of heat", 
                                          index_choices)
                          ),
@@ -85,7 +85,7 @@ ui <- navbarPage("Annual Heat Stress Illness Models - US Army",
                          sidebarPanel(
                              helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
                              
-                             selectInput("index",
+                             selectInput("index3",
                                          label = "Select index of heat", 
                                          index_choices)
                          ),
@@ -111,7 +111,7 @@ server <- function(input, output) {
     
         gg_ambulatory_scatter <-
             ambulatory_joined  %>% 
-                filter(index %in% input$index) %>% 
+                filter(index %in% input$index1) %>% 
                 ggplot(aes(x = value, y = rate, color = installation, shape = installation, 
                            text = paste("installation:", installation, "<br>", 
                                         "year:", year, "<br>", 
@@ -123,7 +123,7 @@ server <- function(input, output) {
                 geom_smooth(method = lm, se = FALSE, size = 0.8) +
                 labs(
                     title = "Army Heat Stress Illness Ambulatory Rates (1997-2018)",
-                            x = input$index,
+                            x = input$index1,
                             y = "HSI rate (per 1,000 persons per year)"
                         ) +
                 scale_shape_manual(values = 0:11) +
@@ -140,7 +140,7 @@ server <- function(input, output) {
             
             gg_ambulatory_scatter_counts <-
                 ambulatory_joined  %>% 
-                filter(index %in% input$index) %>% 
+                filter(index %in% input$index1) %>% 
                 ggplot(aes(x = value, y = count, color = installation, shape = installation, 
                            text = paste("installation:", installation, "<br>", 
                                         "year:", year, "<br>", 
@@ -152,7 +152,7 @@ server <- function(input, output) {
                 geom_smooth(method = lm, se = FALSE, size = 0.8) +
                 labs(
                     title = "Army Heat Stress Illness Ambulatory Counts (1997-2018)",
-                    x = input$index,
+                    x = input$index1,
                     y = "HSI count"
                 ) +
                 scale_shape_manual(values = 0:11) +
@@ -170,7 +170,7 @@ server <- function(input, output) {
             
             gg_hosp_scatter_rates <-
                 joined_hsi_hosp  %>% 
-                filter(index %in% input$index) %>% 
+                filter(index %in% input$index2) %>% 
                 ggplot(aes(x = value, y = rate, color = installation, shape = installation, 
                            text = paste("installation:", installation, "<br>", 
                                         "year:", year, "<br>", 
@@ -182,7 +182,7 @@ server <- function(input, output) {
                 geom_smooth(method = lm, se = FALSE, size = 0.8) +
                 labs(
                     title = "Army Heat Stress Illness Hospitalization Rates (1990-2018)",
-                    x = input$index,
+                    x = input$index2,
                     y = "HSI rate (per 1,000 persons per year)"
                 ) +
                 scale_shape_manual(values = 0:11) +
@@ -198,7 +198,7 @@ server <- function(input, output) {
             
             gg_hosp_scatter_counts <-
                 joined_hsi_hosp  %>% 
-                filter(index %in% input$index) %>% 
+                filter(index %in% input$index2) %>% 
                 ggplot(aes(x = value, y = count, color = installation, shape = installation, 
                            text = paste("installation:", installation, "<br>", 
                                         "year:", year, "<br>", 
@@ -210,7 +210,7 @@ server <- function(input, output) {
                 geom_smooth(method = lm, se = FALSE, size = 0.8) +
                 labs(
                     title = "Army Heat Stress Illness Hospitalization Counts (1990-2018)",
-                    x = input$index,
+                    x = input$index2,
                     y = "HSI count"
                 ) +
                 scale_shape_manual(values = 0:11) +
@@ -227,7 +227,7 @@ server <- function(input, output) {
             
             gg_rme_scatter_rates <-
                 joined_hsi_hosp  %>% 
-                filter(index %in% input$index) %>% 
+                filter(index %in% input$index3) %>% 
                 ggplot(aes(x = value, y = rate, color = installation, shape = installation, 
                            text = paste("installation:", installation, "<br>", 
                                         "year:", year, "<br>", 
@@ -239,7 +239,7 @@ server <- function(input, output) {
                 geom_smooth(method = lm, se = FALSE, size = 0.8) +
                 labs(
                     title = "Army Heat Stress Illness Reportable Event Rates (1995-2018)",
-                    x = input$index,
+                    x = input$index3,
                     y = "HSI rate (per 1,000 persons per year)"
                 ) +
                 scale_shape_manual(values = 0:11) +
@@ -255,7 +255,7 @@ server <- function(input, output) {
             
             gg_rme_scatter_counts <-
                 joined_hsi_hosp  %>% 
-                filter(index %in% input$index) %>% 
+                filter(index %in% input$index3) %>% 
                 ggplot(aes(x = value, y = count, color = installation, shape = installation, 
                            text = paste("installation:", installation, "<br>", 
                                         "year:", year, "<br>", 
@@ -267,7 +267,7 @@ server <- function(input, output) {
                 geom_smooth(method = lm, se = FALSE, size = 0.8) +
                 labs(
                     title = "Army Heat Stress Illness Reportable Event Counts (1995-2018)",
-                    x = input$index,
+                    x = input$index3,
                     y = "HSI count"
                 ) +
                 scale_shape_manual(values = 0:11) +
