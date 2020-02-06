@@ -28,20 +28,25 @@ glmer_ambulatory <-
 
 index_choices <- glmer_ambulatory$index
 
+index_heat_key <- readr::read_rds("../annual_heat/data/index_heat_key.rds")    
 
-# Define UI for application that draws a histogram
+
+# Define UI for application
 ui <- navbarPage("Annual Heat Stress Illness Models - US Army",
         tabPanel("Ambulatory",
             fluidPage(
 
-    # Sidebar with a slider input for number of bins 
+    # Sidebar with a select box input for index of heat 
                 sidebarLayout(
                     sidebarPanel(
-                     helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
+                     helpText("View interactive plots of annual indices of environmental heat and Heat Stress Illness encounters."),
   
                         selectInput("index1",
                         label = "Select index of heat", 
-                        index_choices)
+                        index_choices),
+                     textOutput("description1"),
+                     br(),
+                     textOutput("type1")
         ),
             
 
@@ -57,14 +62,17 @@ ui <- navbarPage("Annual Heat Stress Illness Models - US Army",
         tabPanel("Hospitalization",
                  fluidPage(
                      
-                     # Sidebar with a slider input for number of bins 
+                     # Sidebar 
                      sidebarLayout(
                          sidebarPanel(
-                             helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
+                             helpText("View interactive plots of annual indices of environmental heat and Heat Stress Illness encounters."),
                              
                              selectInput("index2",
                                          label = "Select index of heat", 
-                                         index_choices)
+                                         index_choices),
+                             textOutput("description2"),
+                             br(),
+                             textOutput("type2")
                          ),
                          
                          
@@ -80,14 +88,17 @@ ui <- navbarPage("Annual Heat Stress Illness Models - US Army",
         tabPanel("Reportable Events",
                  fluidPage(
                      
-                     # Sidebar with a slider input for number of bins 
+                     # Sidebar 
                      sidebarLayout(
                          sidebarPanel(
-                             helpText("View plots, tables, and models of annual indices of environmental heat and Heat Stress Illness encounters."),
+                             helpText("View interactive plots of annual indices of environmental heat and Heat Stress Illness encounters."),
                              
                              selectInput("index3",
                                          label = "Select index of heat", 
-                                         index_choices)
+                                         index_choices),
+                                         textOutput("description3"), 
+                                         br(),
+                                         textOutput("type3")
                          ),
                          
                          
@@ -103,8 +114,41 @@ ui <- navbarPage("Annual Heat Stress Illness Models - US Army",
 )
 
 
-# Define server logic required to draw a histogram
+# Define server logic 
 server <- function(input, output) {
+    
+    output$description1 <- renderText({ 
+        paste("Index description:",
+              (index_heat_key %>% filter(index %in% input$index1))$description)
+    })
+    
+    output$description2 <- renderText({ 
+        paste("Index description:",
+              (index_heat_key %>% filter(index %in% input$index2))$description)
+    })
+    
+    output$description3 <- renderText({ 
+        paste("Index description:",
+              (index_heat_key %>% filter(index %in% input$index3))$description)
+    })
+    
+   
+    output$type1 <- renderText({ 
+        paste("Index measure type (Absolute or Relative):",
+              (index_heat_key %>% filter(index %in% input$index1))$index_type)
+    })
+    
+    output$type2 <- renderText({ 
+        paste("Index measure type (Absolute or Relative):",
+              (index_heat_key %>% filter(index %in% input$index2))$index_type)
+    })
+    
+    output$type3 <- renderText({ 
+        paste("Index measure type (Absolute or Relative):",
+              (index_heat_key %>% filter(index %in% input$index3))$index_type)
+    })
+    
+     
 
     output$scatter_plot1 <- renderPlotly({
         # generate plot based on input$index from ui.R
